@@ -31,6 +31,7 @@ info:
 host: users.mind2mobile.net
 schemes:
   - https
+  - http
 basePath: /v1
 produces:
   - application/json
@@ -54,6 +55,12 @@ securityDefinitions:
     name: X-UserAuth
     description: >-
       This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
+  AdminAuth:
+    type: apiKey
+    in: header
+    name: X-AdminAuth
+    description: >-
+      This header is a unique value assigned to a user with admin priviledges.
 
 paths:
   '/users':
