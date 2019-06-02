@@ -1,8 +1,8 @@
 swagger: "2.0"
 info:
-  title: User Management API
+  title: User Management Service API
   description: >
-    This document provides a Swagger specification for a User management API.
+    This document provides a Swagger specification for a User Management Service API.
 
 
     Copyright (c) 2019, Charles Stack.  All Rights Reserved
@@ -32,8 +32,11 @@ host: users.mind2mobile.net
 schemes:
   - https
   - http
+
 basePath: /v1
 produces:
+  - application/json
+consumes:
   - application/json
 
 securityDefinitions:
@@ -42,7 +45,7 @@ securityDefinitions:
     in: header
     name: X-ApiKey
     description: >-
-      This header represents a unique instance of the API that is assigned to a client or application.    
+      This header represents a unique instance of the API that is assigned to a client or application.
   APIClientSecret:
     type: apiKey
     in: header
@@ -55,12 +58,6 @@ securityDefinitions:
     name: X-UserAuth
     description: >-
       This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
-  AdminAuth:
-    type: apiKey
-    in: header
-    name: X-AdminAuth
-    description: >-
-      This header is a unique value assigned to a user with admin priviledges.
 
 paths:
   '/users':
@@ -91,6 +88,12 @@ paths:
               $ref: '#/definitions/User'
         '401':
           description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
           schema:
             type: object
             items:
@@ -139,7 +142,12 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
-
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
     put:
       tags:
         - User Management
@@ -194,7 +202,12 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
-
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
     patch:
       tags:
         - User Management
@@ -213,7 +226,7 @@ paths:
           type: string
         - name: user
           description: >-
-            This User specific Ihnfo
+            This User specific Info
           in: body
           required: true
           schema:
@@ -241,6 +254,12 @@ paths:
               $ref: '#/definitions/ErrorResponse'
         '404':
           description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
           schema:
             type: object
             items:
@@ -283,12 +302,17 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
-
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/users/login':
     post:
       tags:
-        - User Management
+        - User Access
       summary: Log a User into the system
       description: >-
         Log a User into the system.
@@ -332,11 +356,17 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/users/{userId}/logout':
     post:
       tags:
-        - User Management
+        - User Access
       summary: Log a User out of the system
       description: >-
         This API call will log a user out and terminate an octive session.
@@ -368,14 +398,20 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/users/{userId}/refresh':
     post:
       tags:
-        - User Management
+        - User Access
       summary: Refresh an active session
       description: >-
-        This API call refreshes the user session. 
+        This API call refreshes the user session.
       operationId: refreshUserSession
       security:
         - UserAuth: []
@@ -414,11 +450,17 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/passwords':
     get:
       tags:
-        - User Password Management
+        - Password Management
       summary: Request Password Reset Token
       description: >
         Requests a password reset link.  A URL is returned that will enable the User to reset their password.
@@ -437,14 +479,20 @@ paths:
       responses:
         '204':
           description: Ok. No content.
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/passwords/{userId}/{resetToken}':
     post:
       tags:
-        - User Password Management
+        - Password Management
       summary: Reset the User Password
       description: >
-        Resets the User's Password 
+        Resets the User's Password
       operationId: resetUserPassword
       security:
         - APIClientKey: []
@@ -453,7 +501,7 @@ paths:
         - name: userId
           in: path
           description: >-
-            A token passed in 
+            A token passed in
           required: true
           type: string
         - name: resetToken
@@ -472,7 +520,7 @@ paths:
       responses:
         '204':
           description: >-
-            Ok. No content.  
+            Ok. No content.
         '400':
           description: Malformed or Bad Request
           schema:
@@ -497,11 +545,17 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/passwords/{userId}':
     post:
       tags:
-        - User Password Management
+        - Password Management
       summary: Change a User Password
       description: >-
         Change a User's password.  It requires the User's userId, the existing password,  and the new password
@@ -540,11 +594,17 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/users/{userId}/tfa':
     get:
       tags:
-        - User Account Security
+        - Account Security
       summary: Request an TFA code via SMS (SMS method must be enabled).
       description: ->
       operationId: sendUserTFABySMS
@@ -586,23 +646,27 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
-
-
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
 
   '/users/{userId}/tfa/{enable}':
     post:
       tags:
-        - User Account Security
+        - Account Security
       summary: Enable or Disable Two Factor Authentication
       description: >-
-        This API call enables two factor authentication for the user. 
+        This API call enables two factor authentication for the user.
 
-        When initially enabling TFA, no credential payload is required.  The response, if successful, includes the URL that can be imported by an authenticator app as well as an QR Code image, mime-encoded, and in the desired format.  
+        When initially enabling TFA, no credential payload is required.  The response, if successful, includes the URL that can be imported by an authenticator app as well as an QR Code image, mime-encoded, and in the desired format.
 
         The credential payload is required when disabling TFA.  If the useSMS=true was used, the code supplied in the SMS is what should be entered in the payload.
         If useSMS=false or omitted, the code supplied should be that generated by an authenticator.
 
-        Only after the a valid TFA code is submitted via the payload will the desired action be taken.  
+        Only after the a valid TFA code is submitted via the payload will the desired action be taken.
 
         Note (1) - when disabling TFA, ALL methods for TFA are disabled and removed from the account.
 
@@ -617,9 +681,9 @@ paths:
         - name: phase
           in: query
           description: >-
-            Enabling TFA is a two phase process.  
+            Enabling TFA is a two phase process.
 
-            In phase=1, the desired action is specified as a query.  The response includes the URL for an authenticator app to use.  
+            In phase=1, the desired action is specified as a query.  The response includes the URL for an authenticator app to use.
             In phase=2, the credentials are passed and include the a TFA code generated by the authenticator app to activate TFA on the account.
 
             Disabling TFA is,a one or two step process.
@@ -683,30 +747,40 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
 
 definitions:
 
   ErrorResponse:
     description: >-
-      The ErrorResponse object provides additional information to  response
+      The ErrorResponse object provides additional information of a standard response
     type: object
     properties:
       code:
         description:
           The particular HTTP response code
         type: integer
+        default: 200
       subCode:
         description:
           The particular error code (optional)
         type: integer
+        default: 0
       timestamp:
         description: >-
           The date and time the error was generated.
         type: string
         format: date-time
-        example: 2019-06-01T10:40:52Z
+        example: "2019-06-01T10:40:52Z"
       message:
         type: string
+        default: ""
 
   User:
     description: >-
@@ -718,52 +792,64 @@ definitions:
           System assigned unique identifier for the user
         type: string
         format: uuid
+        example: "1e1c1d23-31e2-44ee-b41a-dd143a06af81"
       userName:
         description: >-
           User assigned name.  By default, it is the email address
         type: string
+        example: "jsmith"
       email:
         description: >-
           User's email address
         type: string
         format: email
+        example: "user@yourdomain.com"
       firstName:
         description: >-
           User's first name
         type: string
+        example: "Joe"
       lastName:
         description: >-
           User's last name
         type: string
+        example: "Smith"
       salutation:
         description: >-
           User's salutaton (i.e. Mr, Mrs, Ms, Dr)
         type: string
+        example: "Mr"
       phone:
         description: >-
-          User's cellphone.  
+          User's cellphone.
         type: string
+        example: "1-215-555-1212"
       pwdHash:
         description: >-
-          Hash of the user's password.  
+          Hash of the user's password.
         type: string
+        example: "dkl38dkakldiekdpa8u88334"
       tfaEnabled:
         description: >-
           A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
         type: boolean
+        default: false
+        example: true
       tfaMethods:
         description: >-
           A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
         type: array
         items:
           type: string
+        example: ["Authenticator","SMS"]
       roles:
         description: >-
           A read-only array indicating the roles the User of this account possesses.
-          By default, a newly created User will have the role of "USER".  
+          By default, a newly created User will have the role of "USER".
         type: array
         items:
           type: string
+        example: ["USER","ADMIN"]
       status:
         $ref: '#/definitions/AccountStatusInfo'
 
@@ -777,24 +863,32 @@ definitions:
         description: >-
           A read-only flag indicating whether this account is active within the system.
         type: boolean
+        default: true
+        example: true
       isSuspended:
         description: >-
           A read-only flag indicating whether the account is enabled with in the system.  This is different fromn isActive as it indicates whether an User account has been suspended or not.  An account may be suspended in the event of a too many login attempts, failure to pay (if applicable), etc.
         type: boolean
+        default: false
+        example: false
       suspendedCode:
         description: >-
-          A read-only flag indicating the reason an account was suspended.  
+          A read-only flag indicating the reason an account was suspended.
           type: integer
+          default: false
+          example: false
       suspendedReason:
         description: >-
-          A read-only message describing why an account was suspended.  
+          A read-only message describing why an account was suspended.
           type: string
+          default: ""
+          example: "Unknown"
       suspendedTS:
         description: >-
           Date and Time when an account was suspended.
         type: string
         format: date-time
-
+        example: "2019-06-01T10:40:52Z"
 
   UserLoginRequest:
     description: >-
@@ -805,16 +899,24 @@ definitions:
         description: >-
           This is the User supplied identifier or email address
         type: string
+        default: ""
+        example: "jsmith"
       password:
         description: >-
-          This is the User's Password  
+          This is the User's Password
         type: string
+        minLength: 8
+        maxLength: 20
+        default: ""
+        example: "p@ssw0rd1"
       twoFactorCode:
         description: >-
           This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
         type: string
-
-
+        minLength: 6
+        maxLength: 6
+        default: ""
+        example: "683124"
 
   UserPasswordChangeRequest:
     type: object
@@ -823,14 +925,26 @@ definitions:
         description: >-
           This is the User's supplied identifier or email address
         type: string
+        minLength: 8
+        maxLength: 20
+        default: ""
+        example: "jsmith"
       currentPassword:
         description: >-
-          This is the User's Current Password 
+          This is the User's Current Password
         type: string
+        minLength: 8
+        maxLength: 20
+        default: ""
+        example: "p@ssw0rd1"
       newPassword:
         description: >-
-          This is the User's New Password 
+          This is the User's New Password
         type: string
+        minLength: 8
+        maxLength: 20
+        default: ""
+        example: "newP@ssw0rd1"
 
   UserLoginResponse:
     type: object
@@ -839,21 +953,33 @@ definitions:
         description: >-
           This is the User's unique identifier assigned by the system
         type: string
+        minLength: 36
+        maxLength: 36
         format: uuid
+        default: ""
+        example: "f21e4e0e-648e-45ad-b105-dfaf305c9e4b"
       userName:
         description: >-
           This is the User supplied id or email address
         type: string
+        minLength: 8
+        maxLength: 20
+        default: ""
+        example: "jsmith"
       token:
         description: >-
           This is a token assigned by the system for the current user session.
         type: string
+        minLength: 20
+        maxLength: 36
+        default: ""
+        example: "f038be07-36d0-4126-9b48-00ff659c8599"
       expiration:
         description: >-
           The data and time when the session will be closed.
         type: string
         format: date-time
-        example: 2019-06-01T10:40:52Z
+        example: "2019-06-01T10:40:52Z"
 
   TFAInfo:
     description: >-
@@ -867,17 +993,25 @@ definitions:
         type: array
         items:
           type: string
+        default: []
+        example: ["Authenticator", "SMS"]
       url:
         description: >-
           A URL containing the Google Authenticator information for this login
         type: string
         format: url
+        example: ""
       image:
         description: >-
           A MIME (Base64) encoded image containing the QR Code for the URL
         type: string
+        default: ""
       image_format:
         description: >-
           Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
-        type: string        
-        
+        type: string
+        minLength: 3
+        maxLength: 3
+        default: ""
+        example: "PDF"
+
