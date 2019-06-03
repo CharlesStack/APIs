@@ -5,7 +5,7 @@ info:
     This document provides a Swagger specification for a User Management Service API.
 
 
-    Copyright (c) 2019, Charles Stack.  All Rights Reserved
+    Copyright (c) 2019, Charles Stack of Mind2Mobile.  All Rights Reserved
 
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -40,10 +40,11 @@ consumes:
   - application/json
 
 securityDefinitions:
+
   APIClientKey:
     type: apiKey
     in: header
-    name: X-ApiKey
+    name: X-ApiClientKey
     description: >-
       This header represents a unique instance of the API that is assigned to a client or application.
   APIClientSecret:
@@ -58,6 +59,13 @@ securityDefinitions:
     name: X-UserAuth
     description: >-
       This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
+
+  AdminAuth:
+    type: apiKey
+    in: header
+    name: X-AdminAuth
+    description: >-
+      This header is a unique value assigned to a user with Administrative privledges. It is necessary for call requiring a higher level of priviledge.
 
 paths:
   '/users':
@@ -769,7 +777,7 @@ definitions:
         default: 200
       subCode:
         description:
-          The particular error code (optional)
+          The particular application error code (optional)
         type: integer
         default: 0
       timestamp:
@@ -905,6 +913,7 @@ definitions:
         description: >-
           This is the User's Password
         type: string
+        format: password
         minLength: 8
         maxLength: 20
         default: ""
@@ -933,6 +942,7 @@ definitions:
         description: >-
           This is the User's Current Password
         type: string
+        format: password
         minLength: 8
         maxLength: 20
         default: ""
@@ -941,6 +951,7 @@ definitions:
         description: >-
           This is the User's New Password
         type: string
+        format: password
         minLength: 8
         maxLength: 20
         default: ""
