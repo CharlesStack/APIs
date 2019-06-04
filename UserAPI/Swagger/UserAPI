@@ -59,7 +59,6 @@ securityDefinitions:
     name: X-UserAuth
     description: >-
       This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
-
   AdminAuth:
     type: apiKey
     in: header
@@ -82,7 +81,7 @@ paths:
       parameters:
         - name: user
           description: >-
-            This object represents all the Item specifics
+            This object represents all the User's specifics
           in: body
           required: true
           schema:
@@ -992,7 +991,7 @@ definitions:
         type: string
         format: date-time
         example: "2019-06-01T10:40:52Z"
-      ussuspendedTS:
+      unsuspendTS:
         description: >-
           Date and Time when an account may be unsuspended.
         type: string
