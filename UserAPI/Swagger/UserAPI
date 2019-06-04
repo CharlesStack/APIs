@@ -94,6 +94,12 @@ paths:
             type: object
             items:
               $ref: '#/definitions/User'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
         '401':
           description: Unauthorized
           schema:
@@ -102,6 +108,53 @@ paths:
               $ref: '#/definitions/ErrorResponse'
         '409':
           description: Duplicate User
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+    get:
+      tags:
+        - User Management
+      summary: Confirms and activates a User account
+      description: Confirms and activates a User account
+      operationId: activateUserAccount
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userName
+          in: query
+          description: The userName or email address of the User account holder.
+          required: true
+          type: string
+        - name: userId
+          in: query
+          description: The system assigned userId from the User record.
+          required: true
+          type: string
+
+      responses:
+        '200':
+          description: OK - Account Activated
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found - UserId or UserName invalid
           schema:
             type: object
             items:
@@ -216,6 +269,12 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '409':
+          description: Duplicate User
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
         '501':
           description: Not Implemented
           schema:
@@ -268,6 +327,12 @@ paths:
               $ref: '#/definitions/ErrorResponse'
         '404':
           description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '409':
+          description: Duplicate User
           schema:
             type: object
             items:
@@ -351,7 +416,7 @@ paths:
           schema:
             $ref: '#/definitions/UserLoginRequest'
       responses:
-        '201':
+        '200':
           description: >-
             OK
           schema:
@@ -477,7 +542,7 @@ paths:
         - Password Management
       summary: Request Password Reset Token
       description: >
-        Requests a password reset link.  A URL is returned that will enable the User to reset their password.
+        Requests a password reset link.  A URL is returned that will enable the User to reset their password.  The link is sent to the User's email address on file.
       operationId: getUserPasswordResetLink
       security:
         - APIClientKey: []
@@ -486,13 +551,31 @@ paths:
         - name: email
           in: query
           description: >-
-            The userId of the User
+            The email address of the User
           required: true
           type: string
           format: email
       responses:
         '204':
           description: Ok. No content.
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
         '501':
           description: Not Implemented
           schema:
@@ -515,7 +598,7 @@ paths:
         - name: userId
           in: path
           description: >-
-            A token passed in
+            The User's id who wished have their password reset.
           required: true
           type: string
         - name: resetToken
@@ -527,7 +610,7 @@ paths:
         - name: newPassword
           in: body
           description: >-
-            User's desired password
+            User's desired password.  The password should be hashed using BCrypt
           required: true
           schema:
             type: string
@@ -554,7 +637,7 @@ paths:
             items:
               $ref: '#/definitions/ErrorResponse'
         '404':
-          description: UserId and/or Reset Token Not Found
+          description: UserId Not Found
           schema:
             type: object
             items:
@@ -608,6 +691,12 @@ paths:
             type: object
             items:
               $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
         '501':
           description: Not Implemented
           schema:
@@ -619,7 +708,7 @@ paths:
     get:
       tags:
         - Account Security
-      summary: Request an TFA code via SMS (SMS method must be enabled).
+      summary: Request a TFA code via SMS (SMS method must be enabled).
       description: ->
       operationId: sendUserTFABySMS
       security:
@@ -673,7 +762,7 @@ paths:
         - Account Security
       summary: Enable or Disable Two Factor Authentication
       description: >-
-        This API call enables two factor authentication for the user.
+        This API call enables or disables two factor authentication for the user.
 
         When initially enabling TFA, no credential payload is required.  The response, if successful, includes the URL that can be imported by an authenticator app as well as an QR Code image, mime-encoded, and in the desired format.
 
@@ -731,7 +820,7 @@ paths:
         - name: credentials
           in: body
           description: >-
-            The UUID of the User
+            A valid set of login credentials.
           required: false
           schema:
             $ref: '#/definitions/UserLoginRequest'
@@ -948,9 +1037,9 @@ definitions:
         example: "1-215-555-1212"
       password:
         description: >-
-          Hash of the user's password.
+          User's password.
         type: string
-        example: "dkl38dkakldiekdpa8u88334"
+        example: "p@ssw0rd1"
       tfaEnabled:
         description: >-
           A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
@@ -1007,7 +1096,7 @@ definitions:
         example: "jsmith"
       currentPassword:
         description: >-
-          This is the User's Current Password (hashed)
+          This is the User's Current Password
         type: string
         format: password
         minLength: 8
@@ -1016,7 +1105,7 @@ definitions:
         example: "p@ssw0rd1"
       newPassword:
         description: >-
-          This is the User's New Password (hashed)
+          This is the User's New Password
         type: string
         format: password
         minLength: 8
