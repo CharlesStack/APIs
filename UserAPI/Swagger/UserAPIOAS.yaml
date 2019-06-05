@@ -44,12 +44,18 @@ servers:
         default: '8443'
 
 components:
+
+
   schemas:
 
     ErrorResponse:
       description: >-
         The ErrorResponse object provides additional information of a standard response
       type: object
+      required:
+        - code
+        - timestamp
+        - message
       properties:
         code:
           description: >-
@@ -75,12 +81,21 @@ components:
       description: >-
         The User object represents a user account.
       type: object
+      required:
+        - userId
+        - userName
+        - email
+        - phone
+        - password
+        - tfaEnabled
+
       properties:
         userId:
           description: >-
             System assigned unique identifier for the user
           type: string
           format: uuid
+          readOnly: true
           example: "1e1c1d23-31e2-44ee-b41a-dd143a06af81"
         userName:
           description: >-
@@ -128,6 +143,7 @@ components:
           description: >-
             A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
           type: array
+          readOnly: true
           items:
             type: string
           example: ["Authenticator","SMS"]
@@ -136,6 +152,7 @@ components:
             A read-only array indicating the roles the User of this account possesses.
             By default, a newly created User will have the role of "USER".
           type: array
+          readOnly: true
           items:
             type: string
           example: ["USER","ADMIN"]
@@ -147,6 +164,9 @@ components:
       description: >-
         Describes the current status of an account including suspension info.
       type: object
+      required:
+        - isActive
+        - isSuspended
       properties:
         isActive:
           description: >-
@@ -158,6 +178,7 @@ components:
           description: >-
             A read-only flag indicating whether the account is enabled with in the system.  This is different fromn isActive as it indicates whether an User account has been suspended or not.  An account may be suspended in the event of a too many login attempts, failure to pay (if applicable), etc.
           type: boolean
+          readOnly: true
           default: false
           example: false
         suspendedCode:
@@ -189,6 +210,11 @@ components:
       description: >-
         The User object sent to create a new user account.
       type: object
+      required:
+        - userName
+        - email
+        - phone
+        - password
       properties:
         userName:
           description: >-
@@ -238,12 +264,17 @@ components:
           type: array
           items:
             type: string
+          readOnly: true
           example: ["Authenticator","SMS"]
 
     UserLoginRequest:
       description: >-
         The UserLoginRequest object is passed to supply credentials during login.
       type: object
+      required:
+        - userName
+        - password
+        - twoFactorCode
       properties:
         userName:
           description: >-
@@ -271,6 +302,10 @@ components:
 
     UserChangePasswordRequest:
       type: object
+      required:
+        - userName
+        - currentPassword
+        - newPassword
       properties:
         userName:
           description: >-
@@ -301,6 +336,11 @@ components:
 
     UserLoginResponse:
       type: object
+      required:
+        - id
+        - userName
+        - token
+        - expiration
       properties:
         id:
           description: >-
@@ -338,6 +378,9 @@ components:
       description: >-
         This object describes the TFA info established on the User account.
       type: object
+      required:
+        - methods
+        - uri
       properties:
         methods:
           description: >-
@@ -345,6 +388,7 @@ components:
           type: array
           items:
             type: string
+          readOnly: true
           default: []
           example: ["Authenticator", "SMS"]
         uri:
@@ -352,6 +396,7 @@ components:
             A URI containing the Google Authenticator information for this login
           type: string
           format: url
+          readOnly: true
           example: ""
         image:
           description: >-
@@ -362,11 +407,11 @@ components:
           description: >-
             Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
           type: string
+          readOnly: true
           minLength: 3
           maxLength: 3
           default: ""
           example: "PDF"
-
 
 paths:
   '/users':
@@ -428,4 +473,7 @@ paths:
           'application/json':
             schema:
               $ref: '#/components/schemas/User'
+
+
+
 
