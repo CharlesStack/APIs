@@ -34,15 +34,27 @@ info:
   version: 1.0.0
 
 servers:
-  - url: 'https://127.0.0.1'
-    description: Local Host Development
+  - url: https://{username}.{host}:{port}/{basePath}
+    description: The production API server
     variables:
+      host:
+        enum:
+          - localhost
+          - mind2mobile.net
+        default: localhost
+      username:
+        # note! no enum here means it is an open value
+        default: users
+        description: >-
+          this value is assigned by the service provider, in this example `gigantic-server.com`
       port:
         enum:
-          - '443'
           - '8443'
+          - '443'
         default: '8443'
-
+      basePath:
+        # open meaning there is the opportunity to use special base paths as assigned by the provider, default is `v2`
+        default: v2
 components:
 
 
@@ -473,7 +485,3 @@ paths:
           'application/json':
             schema:
               $ref: '#/components/schemas/User'
-
-
-
-
