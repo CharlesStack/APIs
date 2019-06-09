@@ -113,7 +113,7 @@ components:
           description: >-
             User assigned name.  By default, it is the email address
           type: string
-          example: "jsmith"
+          example: "joesmith"
         email:
           description: >-
             User's email address
@@ -299,7 +299,7 @@ components:
             This is the User's Password
           type: string
           format: password
-          minLength: 8
+          minLength: 0
           maxLength: 20
           default: ""
           example: "p@ssw0rd1"
@@ -307,7 +307,7 @@ components:
           description: >-
             This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
           type: string
-          minLength: 6
+          minLength: 0
           maxLength: 6
           default: ""
           example: "683124"
@@ -323,16 +323,16 @@ components:
           description: >-
             This is the User's supplied identifier or email address
           type: string
-          minLength: 8
+          minLength: 0
           maxLength: 20
           default: ""
-          example: "jsmith"
+          example: "joesmith"
         currentPassword:
           description: >-
             This is the User's Current Password
           type: string
           format: password
-          minLength: 8
+          minLength: 0
           maxLength: 20
           default: ""
           example: "p@ssw0rd1"
@@ -341,7 +341,7 @@ components:
             This is the User's New Password
           type: string
           format: password
-          minLength: 8
+          minLength: 0
           maxLength: 20
           default: ""
           example: "newP@ssw0rd1"
@@ -375,7 +375,7 @@ components:
           description: >-
             This is a token assigned by the system for the current user session.
           type: string
-          minLength: 20
+          minLength: 0
           maxLength: 36
           default: ""
           example: "f038be07-36d0-4126-9b48-00ff659c8599"
@@ -422,7 +422,7 @@ components:
           readOnly: true
           minLength: 3
           maxLength: 3
-          default: ""
+          default: "PDF"
           example: "PDF"
 
 paths:

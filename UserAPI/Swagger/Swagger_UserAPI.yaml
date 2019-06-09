@@ -1063,13 +1063,13 @@ definitions:
           This is the User supplied identifier or email address
         type: string
         default: ""
-        example: "jsmith"
+        example: "joesmith"
       password:
         description: >-
           This is the User's Password
         type: string
         format: password
-        minLength: 8
+        minLength: 0
         maxLength: 20
         default: ""
         example: "p@ssw0rd1"
@@ -1077,7 +1077,7 @@ definitions:
         description: >-
           This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
         type: string
-        minLength: 6
+        minLength: 0
         maxLength: 6
         default: ""
         example: "683124"
@@ -1089,16 +1089,16 @@ definitions:
         description: >-
           This is the User's supplied identifier or email address
         type: string
-        minLength: 8
+        minLength: 0
         maxLength: 20
         default: ""
-        example: "jsmith"
+        example: "joesmith"
       currentPassword:
         description: >-
           This is the User's Current Password
         type: string
         format: password
-        minLength: 8
+        minLength: 0
         maxLength: 20
         default: ""
         example: "p@ssw0rd1"
@@ -1107,7 +1107,7 @@ definitions:
           This is the User's New Password
         type: string
         format: password
-        minLength: 8
+        minLength: 0
         maxLength: 20
         default: ""
         example: "newP@ssw0rd1"
@@ -1119,7 +1119,7 @@ definitions:
         description: >-
           This is the User's unique identifier assigned by the system
         type: string
-        minLength: 36
+        minLength: 0
         maxLength: 36
         format: uuid
         default: ""
@@ -1128,15 +1128,15 @@ definitions:
         description: >-
           This is the User supplied id or email address
         type: string
-        minLength: 8
+        minLength: 0
         maxLength: 20
         default: ""
-        example: "jsmith"
+        example: "joesmith"
       token:
         description: >-
           This is a token assigned by the system for the current user session.
         type: string
-        minLength: 20
+        minLength: 0
         maxLength: 36
         default: ""
         example: "f038be07-36d0-4126-9b48-00ff659c8599"
@@ -1176,8 +1176,8 @@ definitions:
         description: >-
           Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
         type: string
-        minLength: 3
+        minLength: 0
         maxLength: 3
-        default: ""
+        default: "PDF"
         example: "PDF"
 
