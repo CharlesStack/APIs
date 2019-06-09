@@ -145,7 +145,7 @@ paths:
           schema:
             type: object
             items:
-              $ref: '#/definitions/ErrorResponse'
+              $ref: '#/definitions/User'
         '401':
           description: Unauthorized
           schema:

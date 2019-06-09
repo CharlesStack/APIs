@@ -1,0 +1,1380 @@
+openapi: 3.0.1
+info:
+  title: User Management Service API
+  description: >
+    This document provides a Swagger specification for a User Management Service API.
+
+
+    Copyright (c) 2019, Charles Stack of Mind2Mobile.  All Rights Reserved
+
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+  contact:
+    name: Charles Stack
+    email: charles.stack@mind2mobil.net
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+
+servers:
+  - url: https://{username}.{host}:{port}/{basePath}
+    description: The production API server
+    variables:
+      host:
+        enum:
+          - localhost
+          - mind2mobile.net
+        default: localhost
+      username:
+        # note! no enum here means it is an open value
+        default: users
+        description: >-
+          this value is assigned by the service provider, in this example `gigantic-server.com`
+      port:
+        enum:
+          - '8443'
+          - '443'
+        default: '8443'
+      basePath:
+        # open meaning there is the opportunity to use special base paths as assigned by the provider, default is `v2`
+        default: v2
+components:
+
+
+  schemas:
+
+    ErrorResponse:
+      description: >-
+        The ErrorResponse object provides additional information of a standard response
+      type: object
+      required:
+        - code
+        - timestamp
+        - message
+      properties:
+        code:
+          description: >-
+            The particular HTTP response code
+          type: integer
+          default: 200
+        subCode:
+          description: >-
+            The particular application error code (optional)
+          type: integer
+          default: 0
+        timestamp:
+          description: >-
+            The date and time the error was generated.
+          type: string
+          format: date-time
+          example: "2019-06-01T10:40:52Z"
+        message:
+          type: string
+          default: ""
+
+    User:
+      description: >-
+        The User object represents a user account.
+      type: object
+      required:
+        - userId
+        - userName
+        - email
+        - phone
+        - password
+        - tfaEnabled
+
+      properties:
+        userId:
+          description: >-
+            System assigned unique identifier for the user
+          type: string
+          format: uuid
+          readOnly: true
+          example: "1e1c1d23-31e2-44ee-b41a-dd143a06af81"
+        userName:
+          description: >-
+            User assigned name.  By default, it is the email address
+          type: string
+          example: "jsmith"
+        email:
+          description: >-
+            User's email address
+          type: string
+          format: email
+          example: "user@yourdomain.com"
+        firstName:
+          description: >-
+            User's first name
+          type: string
+          example: "Joe"
+        lastName:
+          description: >-
+            User's last name
+          type: string
+          example: "Smith"
+        salutation:
+          description: >-
+            User's salutaton (i.e. Mr, Mrs, Ms, Dr)
+          type: string
+          example: "Mr"
+        phone:
+          description: >-
+            User's cellphone.
+          type: string
+          example: "1-215-555-1212"
+        password:
+          description: >-
+            Hash of the user's password.
+          type: string
+          example: "dkl38dkakldiekdpa8u88334"
+        tfaEnabled:
+          description: >-
+            A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
+          type: boolean
+          default: false
+          example: true
+        tfaMethods:
+          description: >-
+            A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
+          type: array
+          readOnly: true
+          items:
+            type: string
+          example: ["Authenticator","SMS"]
+        roles:
+          description: >-
+            A read-only array indicating the roles the User of this account possesses.
+            By default, a newly created User will have the role of "USER".
+          type: array
+          readOnly: true
+          items:
+            type: string
+          example: ["USER","ADMIN"]
+        status:
+          $ref: '#/components/schemas/AccountStatusInfo'
+
+
+    AccountStatusInfo:
+      description: >-
+        Describes the current status of an account including suspension info.
+      type: object
+      required:
+        - isActive
+        - isSuspended
+      properties:
+        isActive:
+          description: >-
+            A read-only flag indicating whether this account is active within the system.
+          type: boolean
+          default: true
+          example: true
+        isSuspended:
+          description: >-
+            A read-only flag indicating whether the account is enabled with in the system.  This is different fromn isActive as it indicates whether an User account has been suspended or not.  An account may be suspended in the event of a too many login attempts, failure to pay (if applicable), etc.
+          type: boolean
+          readOnly: true
+          default: false
+          example: false
+        suspendedCode:
+          description: >-
+            A read-only flag indicating the reason an account was suspended.
+            type: integer
+            default: false
+            example: false
+        suspendedReason:
+          description: >-
+            A read-only message describing why an account was suspended.
+            type: string
+            default: ""
+            example: "Unknown"
+        suspendedTS:
+          description: >-
+            Date and Time when an account was suspended.
+          type: string
+          format: date-time
+          example: "2019-06-01T10:40:52Z"
+        unsuspendedTS:
+          description: >-
+            Date and Time when an account may be unsuspended.
+          type: string
+          format: date-time
+          example: "2019-06-01T11:40:52Z"
+
+    CreateUserRequest:
+      description: >-
+        The User object sent to create a new user account.
+      type: object
+      required:
+        - userName
+        - email
+        - phone
+        - password
+      properties:
+        userName:
+          description: >-
+            User assigned name.  By default, it is the email address
+          type: string
+          example: "jsmith"
+        email:
+          description: >-
+            User's email address
+          type: string
+          format: email
+          example: "user@yourdomain.com"
+        firstName:
+          description: >-
+            User's first name
+          type: string
+          example: "Joe"
+        lastName:
+          description: >-
+            User's last name
+          type: string
+          example: "Smith"
+        salutation:
+          description: >-
+            User's salutaton (i.e. Mr, Mrs, Ms, Dr)
+          type: string
+          example: "Mr"
+        phone:
+          description: >-
+            User's cellphone.
+          type: string
+          example: "1-215-555-1212"
+        password:
+          description: >-
+            User's password.
+          type: string
+          example: "p@ssw0rd1"
+        tfaEnabled:
+          description: >-
+            A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
+          type: boolean
+          default: false
+          example: true
+        tfaMethods:
+          description: >-
+            A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
+          type: array
+          items:
+            type: string
+          readOnly: true
+          example: ["Authenticator","SMS"]
+
+    UserLoginRequest:
+      description: >-
+        The UserLoginRequest object is passed to supply credentials during login.
+      type: object
+      required:
+        - userName
+        - password
+        - twoFactorCode
+      properties:
+        userName:
+          description: >-
+            This is the User supplied identifier or email address
+          type: string
+          default: ""
+          example: "jsmith"
+        password:
+          description: >-
+            This is the User's Password
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 20
+          default: ""
+          example: "p@ssw0rd1"
+        twoFactorCode:
+          description: >-
+            This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
+          type: string
+          minLength: 6
+          maxLength: 6
+          default: ""
+          example: "683124"
+
+    UserChangePasswordRequest:
+      type: object
+      required:
+        - userName
+        - currentPassword
+        - newPassword
+      properties:
+        userName:
+          description: >-
+            This is the User's supplied identifier or email address
+          type: string
+          minLength: 8
+          maxLength: 20
+          default: ""
+          example: "jsmith"
+        currentPassword:
+          description: >-
+            This is the User's Current Password
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 20
+          default: ""
+          example: "p@ssw0rd1"
+        newPassword:
+          description: >-
+            This is the User's New Password
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 20
+          default: ""
+          example: "newP@ssw0rd1"
+
+    UserLoginResponse:
+      type: object
+      required:
+        - id
+        - userName
+        - token
+        - expiration
+      properties:
+        id:
+          description: >-
+            This is the User's unique identifier assigned by the system
+          type: string
+          minLength: 36
+          maxLength: 36
+          format: uuid
+          default: ""
+          example: "f21e4e0e-648e-45ad-b105-dfaf305c9e4b"
+        userName:
+          description: >-
+            This is the User supplied id or email address
+          type: string
+          minLength: 8
+          maxLength: 20
+          default: ""
+          example: "jsmith"
+        token:
+          description: >-
+            This is a token assigned by the system for the current user session.
+          type: string
+          minLength: 20
+          maxLength: 36
+          default: ""
+          example: "f038be07-36d0-4126-9b48-00ff659c8599"
+        expiration:
+          description: >-
+            The data and time when the session will be closed.
+          type: string
+          format: date-time
+          example: "2019-06-01T10:40:52Z"
+
+    TFAInfoResponse:
+      description: >-
+        This object describes the TFA info established on the User account.
+      type: object
+      required:
+        - methods
+        - uri
+      properties:
+        methods:
+          description: >-
+            The methods configured for Two Factor Authentication.  By default, QRCode will be provided when TFA is enabled.  If the SMS option is configured, this will also be set. Valid values: Authenticator, SMS
+          type: array
+          items:
+            type: string
+          readOnly: true
+          default: []
+          example: ["Authenticator", "SMS"]
+        uri:
+          description: >-
+            A URI containing the Google Authenticator information for this login
+          type: string
+          format: url
+          readOnly: true
+          example: ""
+        image:
+          description: >-
+            A MIME (Base64) encoded image containing the QR Code for the URL
+          type: string
+          default: ""
+        imageFmt:
+          description: >-
+            Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
+          type: string
+          readOnly: true
+          minLength: 3
+          maxLength: 3
+          default: ""
+          example: "PDF"
+
+paths:
+  '/users':
+    post:
+      tags:
+        - User Management
+      summary: Create a new User Account
+      description: >-
+        Create a new User account.  It requires the APIClientKey and APIClientSecret.  The user will exist within the context of the Client.
+      operationId: createUser
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+
+      responses:
+        '201':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate User
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+
+    get:
+      tags:
+        - User Management
+      summary: Confirms and activates a User account
+      description: Confirms and activates a User account
+      operationId: activateUserAccount
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userName
+          in: query
+          description: username to fetch
+          required: true
+          schema:
+            type: string
+
+        - name: userId
+          in: query
+          description: The system assigned userId from the User record.
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '201':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/User'
+
+        '401':
+          description: Unauthorised
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Not Found - UserId or UserName invalid
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/{userId}':
+    get:
+      tags:
+        - User Management
+      summary: Retrieves public information for a user
+      description: >-
+        Retrieve a specific User's account record.
+      operationId: getUserByUserId
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The system assigned userId from the User record.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - User Management
+      summary: Updates a user's info
+      operationId: updateUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The system assigned userId from the User record.
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+
+      responses:
+        '201':
+          description: User Updated
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/User'
+        '304':
+          description: Not Modified
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate User
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+        - User Management
+      summary: Updates specific fields of a User's record
+      operationId: patchUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The system assigned userId from the User record.
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+
+      responses:
+        '201':
+          description: User Updated
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/User'
+        '304':
+          description: Not Modified
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate User
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User Management
+      summary: Deletes an open User account
+      description: >-
+        Delete an open User account
+      operationId: deleteUserAccount
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The system assigned userId from the User record.
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: OK.  User account deleted
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/login':
+    post:
+      tags:
+        - User Access
+      summary: Log a User into the system
+      description: >-
+        Log a User into the system.
+      operationId: loginUser
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: useSMS
+          description: >-
+            If this query parameter is set to true, the TFA field of the credentials object is expected to be a valid SMS token sent within the valid time window.
+            If this query parameter is set to false or omitted, the TFA field of the credentials object is expected to be a valid Authenticator value.
+          in: query
+          required: false
+          schema:
+            type: boolean
+
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/UserLoginResponse'
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/{userId}/logout':
+    post:
+      tags:
+        - User Access
+      summary: Log a User out of the system
+      description: >-
+        This API call will log a user out and terminate an octive session.
+      operationId: logoutUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Ok. Logged Out
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/{userId}/refresh':
+    post:
+      tags:
+        - User Access
+      summary: Refresh an active session
+      description: >-
+        This API call refreshes the user session.
+      operationId: refreshUserSession
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Ok. Session Refreshed
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/UserLoginResponse'
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/passwords':
+    get:
+      tags:
+        - Password Management
+      summary: Request Password Reset Token
+      description: >
+        Requests a password reset link.  A URL is returned that will enable the User to reset their password.  The link is sent to the User's email address on file.
+      operationId: getUserPasswordResetLink
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: email
+          in: query
+          description: >-
+            The email address of the User
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '204':
+          description: Ok. No content.
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/passwords/{userId}/{resetToken}':
+    post:
+      tags:
+        - Password Management
+      summary: Reset the User Password
+      description: >
+        Resets the User's Password
+      operationId: resetUserPassword
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The User's id who wished have their password reset.
+          required: true
+          schema:
+            type: string
+        - name: resetToken
+          in: path
+          description: >-
+            A one-time-use token that will permit the User's password to be reset.  This token does have an expiration period (TBD) after which it will work.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: >-
+          User's desired password.  The password should be hashed using BCrypt
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: string
+
+      responses:
+        '204':
+          description: Ok. No content.
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: UserId Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/passwords/{userId}':
+    post:
+      tags:
+        - Password Management
+      summary: Change a User Password
+      description: >-
+        Change a User's password.  It requires the User's userId, the existing password,  and the new password
+      operationId: changeUserPassword
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: >-
+          Change Password Credential
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UserChangePasswordRequest'
+      responses:
+        '204':
+          description: Ok. No content.
+        '400':
+          description: Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/{userId}/tfa':
+    get:
+      tags:
+        - Account Security
+      summary: Request a TFA code via SMS (SMS method must be enabled).
+      description: ->
+      operationId: sendUserTFABySMS
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '203':
+          description: Ok. No Content
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Not Allowed
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  '/users/{userId}/tfa/{enable}':
+    post:
+      tags:
+        - Account Security
+      summary: Enable or Disable Two Factor Authentication
+      description: >-
+        This API call enables or disables two factor authentication for the user.
+
+        When initially enabling TFA, no credential payload is required.  The response, if successful, includes the URL that can be imported by an authenticator app as well as an QR Code image, mime-encoded, and in the desired format.
+
+        The credential payload is required when disabling TFA.  If the useSMS=true was used, the code supplied in the SMS is what should be entered in the payload.
+        If useSMS=false or omitted, the code supplied should be that generated by an authenticator.
+
+        Only after the a valid TFA code is submitted via the payload will the desired action be taken.
+
+        Note (1) - when disabling TFA, ALL methods for TFA are disabled and removed from the account.
+
+        Note (2) - When enabling TFA, the authenticator link is supplied only once and is not recoverable by the user.  You must disable TFA and reenable it to get a new authenticator link.
+
+      operationId: setUserTFA
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: phase
+          in: query
+          description: >-
+            Enabling TFA is a two phase process.
+
+            In phase=1, the desired action is specified as a query.  The response includes the URL for an authenticator app to use.
+            In phase=2, the credentials are passed and include the a TFA code generated by the authenticator app to activate TFA on the account.
+
+            Disabling TFA is,a one or two step process.
+            If the TFA code is generated by an authenticator, it can be included in the body and the phase query param can be omitted or set to 1.
+            If the TFA code is being sent via SMS (phase=1 and useSMS=true) then, upon receiving the SMS code, the code must be specified in the payload and the query parameters, phase=2 and useSMS=true, must be set.
+          required: false
+          schema:
+            type: integer
+
+        - name: useSMS
+          in: query
+          description: >-
+            The method must be specified if SMS is being used to deliver a one-time code.  Use useSMS=false to have a one-time code sent to the cellphone number specified in the account.  If no cellphone has been provided, the call will fail and the desired action will not occur.
+          required: false
+          schema:
+            type: boolean
+
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+        - name: enable
+          in: path
+          description: >-
+            A flag enabling or disabling Two Factor Authentication.
+          required: true
+          schema:
+            type: boolean
+
+      requestBody:
+        description: >-
+          A valid set of login credentials.
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+
+      responses:
+        '201':
+          description: Ok. Two Factor Authentication Enabled. Result is the 2FA URL
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/TFAInfoResponse'
+        '400':
+          description: Malformed or Bad Request
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Not Implemented
+          content:
+            'application/json':
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+
+
