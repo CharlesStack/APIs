@@ -28,10 +28,10 @@ info:
 
   version: 0.0.1
 
-host: users.mind2mobile.net
+host: localhost:8080
 schemes:
-  - https
   - http
+  - https
 
 basePath: /v1
 produces:
