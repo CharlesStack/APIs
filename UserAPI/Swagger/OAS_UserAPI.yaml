@@ -481,10 +481,11 @@ paths:
                   $ref: '#/components/schemas/ErrorResponse'
 
       requestBody:
+        description: A CreateUserRequest object
         content:
           'application/json':
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
 
     get:
       tags:
@@ -625,6 +626,7 @@ paths:
             type: string
 
       requestBody:
+        description: An updated User object
         content:
           'application/json':
             schema:
@@ -705,6 +707,7 @@ paths:
             type: string
 
       requestBody:
+        description: An updated User object
         content:
           'application/json':
             schema:
@@ -845,6 +848,7 @@ paths:
             type: boolean
 
       requestBody:
+        description: A User Login Request object
         required: true
         content:
           'application/json':
@@ -1154,8 +1158,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: >-
-          Change Password Credential
+        description: Change Password Credential
         required: true
         content:
           'application/json':
@@ -1375,6 +1378,3 @@ paths:
                 type: object
                 items:
                   $ref: '#/components/schemas/ErrorResponse'
-
-
-
