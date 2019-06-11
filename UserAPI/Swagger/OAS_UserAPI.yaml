@@ -196,15 +196,15 @@ components:
         suspendedCode:
           description: >-
             A read-only flag indicating the reason an account was suspended.
-            type: integer
-            default: false
-            example: false
+          type: integer
+          default: false
+          example: false
         suspendedReason:
           description: >-
             A read-only message describing why an account was suspended.
-            type: string
-            default: ""
-            example: "Unknown"
+          type: string
+          default: ""
+          example: "Unknown"
         suspendedTS:
           description: >-
             Date and Time when an account was suspended.
@@ -299,17 +299,15 @@ components:
             This is the User's Password
           type: string
           format: password
-          minLength: 0
+          minLength: 8
           maxLength: 20
-          default: ""
           example: "p@ssw0rd1"
         twoFactorCode:
           description: >-
             This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
           type: string
-          minLength: 0
+          minLength: 6
           maxLength: 6
-          default: ""
           example: "683124"
 
     UserChangePasswordRequest:
@@ -332,18 +330,16 @@ components:
             This is the User's Current Password
           type: string
           format: password
-          minLength: 0
+          minLength: 8
           maxLength: 20
-          default: ""
           example: "p@ssw0rd1"
         newPassword:
           description: >-
             This is the User's New Password
           type: string
           format: password
-          minLength: 0
+          minLength: 8
           maxLength: 20
-          default: ""
           example: "newP@ssw0rd1"
 
     UserLoginResponse:
@@ -358,7 +354,7 @@ components:
           description: >-
             This is the User's unique identifier assigned by the system
           type: string
-          minLength: 36
+          minLength: 20
           maxLength: 36
           format: uuid
           default: ""
@@ -369,15 +365,13 @@ components:
           type: string
           minLength: 8
           maxLength: 20
-          default: ""
-          example: "jsmith"
+          example: "joesmith"
         token:
           description: >-
             This is a token assigned by the system for the current user session.
           type: string
-          minLength: 0
+          minLength: 20
           maxLength: 36
-          default: ""
           example: "f038be07-36d0-4126-9b48-00ff659c8599"
         expiration:
           description: >-
@@ -420,9 +414,8 @@ components:
             Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
           type: string
           readOnly: true
-          minLength: 3
+          minLength: 0
           maxLength: 3
-          default: "PDF"
           example: "PDF"
 
 paths:
