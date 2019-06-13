@@ -1,0 +1,585 @@
+swagger: "2.0"
+info:
+  title: User Management API
+  description: >
+    This document provides a Swagger specification for a User Management portion of the User Management Service API.
+
+
+    Copyright (c) 2019, Charles Stack of Mind2Mobile.  All Rights Reserved
+
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+  version: 0.0.1
+
+host: localhost:8080
+schemes:
+  - http
+  - https
+
+basePath: /v1
+produces:
+  - application/json
+consumes:
+  - application/json
+
+securityDefinitions:
+
+  APIClientKey:
+    type: apiKey
+    in: header
+    name: X-ApiClientKey
+    description: >-
+      This header represents a unique instance of the API that is assigned to a client or application.
+  APIClientSecret:
+    type: apiKey
+    in: header
+    name: X-ApiClientSecret
+    description: >-
+      This header identifies the password associated with the APIClientKey.  This value can be changed if compromised.
+  UserAuth:
+    type: apiKey
+    in: header
+    name: X-UserAuth
+    description: >-
+      This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
+  AdminAuth:
+    type: apiKey
+    in: header
+    name: X-AdminAuth
+    description: >-
+      This header is a unique value assigned to a user with Administrative privledges. It is necessary for call requiring a higher level of priviledge.
+
+paths:
+  '/users':
+    post:
+      tags:
+        - User Management
+      summary: Create a new User Account
+      description: >-
+        Create a new User account.  It requires the APIClientKey and APIClientSecret.  The user will exist within the context of the Client.
+      operationId: createUser
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: user
+          description: >-
+            This object represents all the User's specifics
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateUserRequest'
+      responses:
+        '201':
+          description: OK
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/User'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '409':
+          description: Duplicate User
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+    get:
+      tags:
+        - User Management
+      summary: Confirms and activates a User account
+      description: Confirms and activates a User account
+      operationId: activateUserAccount
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userName
+          in: query
+          description: The userName or email address of the User account holder.
+          required: true
+          type: string
+        - name: userId
+          in: query
+          description: The system assigned userId from the User record.
+          required: true
+          type: string
+
+      responses:
+        '200':
+          description: OK - Account Activated
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/User'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found - UserId or UserName invalid
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+  '/users/{userId}':
+    get:
+      tags:
+        - User Management
+      summary: Retrieves public information for a user
+      description: >-
+        Retrieve a specific User's account record.
+      operationId: getUserByUserId
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The UUID of the user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+    put:
+      tags:
+        - User Management
+      summary: Updates a user's info
+      operationId: updateUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The UUID of the user
+          required: true
+          type: string
+
+        - name: user
+          description: >-
+            This object represents the User
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '201':
+          description: User Updated
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '304':
+          description: Not Modified
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '409':
+          description: Duplicate User
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+    patch:
+      tags:
+        - User Management
+      summary: Updates specific fields of a User's record
+      operationId: patchUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          type: string
+        - name: user
+          description: >-
+            This User specific Info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '201':
+          description: User Updated
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/User'
+        '304':
+          description: Not Modified
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '409':
+          description: Duplicate User
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+    delete:
+      tags:
+        - User Management
+      summary: Deletes an open User account
+      description: >-
+        Delete an open User account
+      operationId: deleteUserAccount
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: The UUID of the user
+          required: true
+          type: string
+      responses:
+        '204':
+          description: OK.  User account deleted
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+
+definitions:
+
+  ErrorResponse:
+    description: >-
+      The ErrorResponse object provides additional information of a standard response
+    type: object
+    properties:
+      code:
+        description:
+          The particular HTTP response code
+        type: integer
+        default: 200
+      subCode:
+        description:
+          The particular application error code (optional)
+        type: integer
+        default: 0
+      timestamp:
+        description: >-
+          The date and time the error was generated.
+        type: string
+        format: date-time
+        example: "2019-06-01T10:40:52Z"
+      message:
+        type: string
+        default: ""
+
+  User:
+    description: >-
+      The User object represents a user account.
+    type: object
+    properties:
+      userId:
+        description: >-
+          System assigned unique identifier for the user
+        type: string
+        format: uuid
+        example: "1e1c1d23-31e2-44ee-b41a-dd143a06af81"
+      userName:
+        description: >-
+          User assigned name.  By default, it is the email address
+        type: string
+        example: "jsmith"
+      email:
+        description: >-
+          User's email address
+        type: string
+        format: email
+        example: "user@yourdomain.com"
+      firstName:
+        description: >-
+          User's first name
+        type: string
+        example: "Joe"
+      lastName:
+        description: >-
+          User's last name
+        type: string
+        example: "Smith"
+      salutation:
+        description: >-
+          User's salutaton (i.e. Mr, Mrs, Ms, Dr)
+        type: string
+        example: "Mr"
+      phone:
+        description: >-
+          User's cellphone.
+        type: string
+        example: "1-215-555-1212"
+      password:
+        description: >-
+          Hash of the user's password.
+        type: string
+        example: "dkl38dkakldiekdpa8u88334"
+      tfaEnabled:
+        description: >-
+          A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
+        type: boolean
+        default: false
+        example: true
+      tfaMethods:
+        description: >-
+          A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
+        type: array
+        items:
+          type: string
+        example: ["Authenticator","SMS"]
+      roles:
+        description: >-
+          A read-only array indicating the roles the User of this account possesses.
+          By default, a newly created User will have the role of "USER".
+        type: array
+        items:
+          type: string
+        example: ["USER","ADMIN"]
+      status:
+        $ref: '#/definitions/AccountStatusInfo'
+
+
+  AccountStatusInfo:
+    description: >-
+      Describes the current status of an account including suspension info.
+    type: object
+    properties:
+      isActive:
+        description: >-
+          A read-only flag indicating whether this account is active within the system.
+        type: boolean
+        default: true
+        example: true
+      isSuspended:
+        description: >-
+          A read-only flag indicating whether the account is enabled with in the system.  This is different fromn isActive as it indicates whether an User account has been suspended or not.  An account may be suspended in the event of a too many login attempts, failure to pay (if applicable), etc.
+        type: boolean
+        default: false
+        example: false
+      suspendedCode:
+        description: >-
+          A read-only flag indicating the reason an account was suspended.
+          type: integer
+          default: false
+          example: false
+      suspendedReason:
+        description: >-
+          A read-only message describing why an account was suspended.
+          type: string
+          default: ""
+          example: "Unknown"
+      suspendedTS:
+        description: >-
+          Date and Time when an account was suspended.
+        type: string
+        format: date-time
+        example: "2019-06-01T10:40:52Z"
+      unsuspendTS:
+        description: >-
+          Date and Time when an account may be unsuspended.
+        type: string
+        format: date-time
+        example: "2019-06-01T11:40:52Z"
+
+  CreateUserRequest:
+    description: >-
+      The User object sent to create a new user account.
+    type: object
+    properties:
+      userName:
+        description: >-
+          User assigned name.  By default, it is the email address
+        type: string
+        example: "jsmith"
+      email:
+        description: >-
+          User's email address
+        type: string
+        format: email
+        example: "user@yourdomain.com"
+      firstName:
+        description: >-
+          User's first name
+        type: string
+        example: "Joe"
+      lastName:
+        description: >-
+          User's last name
+        type: string
+        example: "Smith"
+      salutation:
+        description: >-
+          User's salutaton (i.e. Mr, Mrs, Ms, Dr)
+        type: string
+        example: "Mr"
+      phone:
+        description: >-
+          User's cellphone.
+        type: string
+        example: "1-215-555-1212"
+      password:
+        description: >-
+          User's password.
+        type: string
+        example: "p@ssw0rd1"
+      tfaEnabled:
+        description: >-
+          A read-only flag indicating if Two Factor Authentication is Enabled or Disabled
+        type: boolean
+        default: false
+        example: true
+      tfaMethods:
+        description: >-
+          A read-only array indicating the methods of TFA enabled for this account. It is manipulated by the API only.
+        type: array
+        items:
+          type: string
+        example: ["Authenticator","SMS"]

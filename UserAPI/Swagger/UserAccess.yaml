@@ -1,0 +1,305 @@
+swagger: "2.0"
+info:
+  title: User Access Service API
+  description: >
+    This document provides a Swagger specification for a User Access portion of the User Management Service API.
+
+
+    Copyright (c) 2019, Charles Stack of Mind2Mobile.  All Rights Reserved
+
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+  version: 0.0.1
+
+host: localhost:8080
+schemes:
+  - http
+  - https
+
+basePath: /v1
+produces:
+  - application/json
+consumes:
+  - application/json
+
+securityDefinitions:
+
+  APIClientKey:
+    type: apiKey
+    in: header
+    name: X-ApiClientKey
+    description: >-
+      This header represents a unique instance of the API that is assigned to a client or application.
+  APIClientSecret:
+    type: apiKey
+    in: header
+    name: X-ApiClientSecret
+    description: >-
+      This header identifies the password associated with the APIClientKey.  This value can be changed if compromised.
+  UserAuth:
+    type: apiKey
+    in: header
+    name: X-UserAuth
+    description: >-
+      This header is a unique value assigned to a user after login and it grants them the ability to use the API within the context of the grants of the APIClientKey.  It is needed to authorize certain API calls.
+  AdminAuth:
+    type: apiKey
+    in: header
+    name: X-AdminAuth
+    description: >-
+      This header is a unique value assigned to a user with Administrative privledges. It is necessary for call requiring a higher level of priviledge.
+
+paths:
+
+  '/users/login':
+    post:
+      tags:
+        - User Access
+      summary: Log a User into the system
+      description: >-
+        Log a User into the system.
+      operationId: loginUser
+      security:
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: useSMS
+          description: >-
+            If this query parameter is set to true, the TFA field of the credentials object is expected to be a valid SMS token sent within the valid time window.
+            If this query parameter is set to false or omitted, the TFA field of the credentials object is expected to be a valid Authenticator value.
+          in: query
+          required: false
+          type: boolean
+
+        - name: credentials
+          description: >-
+            This object represents all the Item specifics
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserLoginRequest'
+      responses:
+        '200':
+          description: >-
+            OK
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/UserLoginResponse'
+        '400':
+          description: Malformed or Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+  '/users/{userId}/logout':
+    post:
+      tags:
+        - User Access
+      summary: Log a User out of the system
+      description: >-
+        This API call will log a user out and terminate an octive session.
+      operationId: logoutUser
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Ok. Logged Out
+        '400':
+          description: Malformed or Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+  '/users/{userId}/refresh':
+    post:
+      tags:
+        - User Access
+      summary: Refresh an active session
+      description: >-
+        This API call refreshes the user session.
+      operationId: refreshUserSession
+      security:
+        - UserAuth: []
+        - APIClientKey: []
+        - APIClientSecret: []
+      parameters:
+        - name: userId
+          in: path
+          description: >-
+            The UUID of the User
+          required: true
+          type: string
+          format: uuid
+      responses:
+        '201':
+          description: Ok. Session Refreshed
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/UserLoginResponse'
+        '400':
+          description: Malformed or Bad Request
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+        '501':
+          description: Not Implemented
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/ErrorResponse'
+
+
+definitions:
+
+  ErrorResponse:
+    description: >-
+      The ErrorResponse object provides additional information of a standard response
+    type: object
+    properties:
+      code:
+        description:
+          The particular HTTP response code
+        type: integer
+        default: 200
+      subCode:
+        description:
+          The particular application error code (optional)
+        type: integer
+        default: 0
+      timestamp:
+        description: >-
+          The date and time the error was generated.
+        type: string
+        format: date-time
+        example: "2019-06-01T10:40:52Z"
+      message:
+        type: string
+        default: ""
+
+
+  UserLoginRequest:
+    description: >-
+      The UserLoginRequest object is passed to supply credentials during login.
+    type: object
+    properties:
+      userName:
+        description: >-
+          This is the User supplied identifier or email address
+        type: string
+        default: ""
+        example: "joesmith"
+      password:
+        description: >-
+          This is the User's Password
+        type: string
+        format: password
+        minLength: 8
+        maxLength: 20
+        example: "p@ssw0rd1"
+      twoFactorCode:
+        description: >-
+          This is the generated Two Factor Authentication code. This code is created using either an authenticator app or sent by SMS if the useSMS option was enabled.
+        type: string
+        minLength: 6
+        maxLength: 6
+        example: "683124"
+
+  UserLoginResponse:
+    type: object
+    properties:
+      id:
+        description: >-
+          This is the User's unique identifier assigned by the system
+        type: string
+        minLength: 20
+        maxLength: 36
+        format: uuid
+        example: "f21e4e0e-648e-45ad-b105-dfaf305c9e4b"
+      userName:
+        description: >-
+          This is the User supplied id or email address
+        type: string
+        minLength: 0
+        maxLength: 20
+        example: "joesmith"
+      token:
+        description: >-
+          This is a token assigned by the system for the current user session.
+        type: string
+        minLength: 20
+        maxLength: 36
+        example: "f038be07-36d0-4126-9b48-00ff659c8599"
+      expiration:
+        description: >-
+          The data and time when the session will be closed.
+        type: string
+        format: date-time
+        example: "2019-06-01T10:40:52Z"
