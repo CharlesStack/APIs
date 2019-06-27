@@ -411,7 +411,7 @@ components:
           default: ""
         imageFmt:
           description: >-
-            Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, BMP, SVG)
+            Indicates the format of the image used to hold the QR Code.  This can be (PNG, PDF, SVG)
           type: string
           readOnly: true
           minLength: 0
