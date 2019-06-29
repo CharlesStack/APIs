@@ -475,6 +475,12 @@ definitions:
         items:
           type: string
         example: ["Authenticator","SMS"]
+      phoneConfirmed:
+        description: >-
+          Flag indicating whether the user successfully confirmed their phone number.
+          This is necessary for them to use their phone for authentication.
+        type: boolean
+        example: false
       roles:
         description: >-
           A read-only array indicating the roles the User of this account possesses.

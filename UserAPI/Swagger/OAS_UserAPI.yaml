@@ -278,6 +278,12 @@ components:
             type: string
           readOnly: true
           example: ["Authenticator","SMS"]
+        phoneConfirmed:
+          description: >-
+            Flag indicating whether the user successfully confirmed their phone number.
+            This is necessary for them to use their phone for authentication.
+          type: boolean
+          example: false
 
     UserLoginRequest:
       description: >-
